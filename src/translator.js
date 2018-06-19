@@ -1,31 +1,41 @@
 "use strict";
 
 const Translate = require('@google-cloud/translate');
-const async = require('async');
-
 const TranslateService = {};
-const calls = [];
+const promises = [];
 const translate = new Translate({
   keyFilename: './src/translator.conf.json',
 });
 
-TranslateService.translateText = function (content, targetLang, next) {
+// TranslateService.translateText = (text, lang, callback) => {
 
-  calls.push((callback) => {
+//   let myPromise = new Promise((resolve, reject) => {
+//     translate.translate(text, lang)
+//       .then((res) => resolve(res[0]))
+//       .catch((err) => reject(err))
+//   })
 
-    translate
-      .translate( content, targetLang )
-      .then(results => {
-        return callback(null, results[0]);
-      })
-      .catch(err => {
-        console.error('ERROR:', err);
-      });
-  });
+//   promises.push(myPromise)
 
-  async.waterfall(calls, function (err, response) {
-    if (next) next(err, response);
-  });
-};
+//   Promise.all(promises)
+//     .then((values) => callback(null, values))
+//     .catch((err) => next(err))
+// }
+
+TranslateService.translateText2 = (text, lang) => {
+  return new Promise((resolve, reject) => {
+    let myPromise = new Promise((resolve,reject) => {
+      translate.translate(text, lang)
+        .then((res) => resolve(res[0]))
+        .catch((err) => reject(err))
+    })
+
+    promises.push(myPromise)
+
+    Promise.all(promises)
+      .then((values) => resolve(values))
+      .catch((err) => reject(err))
+  })
+}
 
 module.exports = TranslateService;
